@@ -28,8 +28,8 @@ public class Location {
 
     @Setter(AccessLevel.PRIVATE)
     @ManyToMany(mappedBy = "locations")
-    @ToString.Exclude
-    @JsonIgnore
+//    @ToString.Exclude
+//    @JsonIgnore
     private List<Route> routes = new ArrayList<>();
 
     public Location(String name, double x, double y) {

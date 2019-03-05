@@ -1,11 +1,13 @@
 package com.transportroad.service.impl;
 
+import com.transportroad.exception.LocationNotFoundException;
 import com.transportroad.model.domain.Location;
 import com.transportroad.model.domain.Route;
 import com.transportroad.model.dto.PlanDTO;
 import com.transportroad.model.dto.RouteTwoPointsDTO;
 import com.transportroad.repository.LocationRepository;
 import com.transportroad.repository.RouteRepository;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -13,9 +15,7 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.doReturn;
@@ -64,7 +64,7 @@ public class RoutePlanServiceImplTest {
     }
 
     @Test
-    public void test_getPlanById() {
+    public void test_getPlanById_WhenCorrectId_thenReturn_PlanDTO() {
 
         long routeId = 1;
 
@@ -93,7 +93,7 @@ public class RoutePlanServiceImplTest {
     }
 
     @Test(expected = RuntimeException.class)
-    public void test_getPlanById_ThrowingException(){
+    public void test_getPlanById_WhenIncorrect_thenThrowingException(){
 
         long routeId = 4;
 
@@ -104,10 +104,41 @@ public class RoutePlanServiceImplTest {
     }
 
     @Test
-    public void test_CreatePlanDTO(){
+    public void test_locationValidator_WhenCorrectIds_thenReturn_LocationList(){
 
+        List <Long> list = Arrays.asList(1L,2L,3L);
+        List<Location> expected =  Arrays.asList(
+                new Location(1L,"Kyiv", 10.0, 15.5),
+                new Location(2L,"Pekin", 50, 80),
+                new Location(3L,"Lyon", 51, 81));
 
+        doReturn(expected).when(locationRepository).getLocationsByIdIn(list);
+
+        List<Location> actual = routePlanService.locationsValidator(list);
+
+        assertEquals(expected, actual);
 
     }
+
+    @Test(expected = LocationNotFoundException.class)
+    public void test_LocationValidator_WhenIncorrect_thenThrowingException(){
+
+        List<Long> list = Arrays.asList(1L,2L,3L,4L);
+
+        Set<Long> actual = new HashSet<>(list);
+
+        List<Location> expected =  Arrays.asList(
+                new Location(1L,"Kyiv", 10.0, 15.5),
+                new Location(2L,"Pekin", 50, 80),
+                new Location(3L,"Lyon", 51, 81));
+
+
+        doReturn(expected).when(locationRepository).getLocationsByIdIn(list);
+
+        assertEquals(expected.size(), actual.size());
+
+    }
+
+
 
 }
