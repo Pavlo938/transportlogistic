@@ -1,77 +1,54 @@
 package com.transportroad.controller;
 
+import com.transportroad.exception.LocationNotFoundException;
 import com.transportroad.model.domain.Location;
 import com.transportroad.service.LocationService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import java.net.URI;
 import java.util.List;
-import java.util.Optional;
 
-// TODO: 02.03.19 use same code style for all cases
-// TODO: 02.03.19 read rest best practices
-// TODO: 02.03.19 use request mapping on Contrloller level
-//@RequestMapping(value = "/location")
-// TODO: 02.03.19 use constructor injection and @RequiredArgsConstructor
 @RestController
+@RequiredArgsConstructor
+@RequestMapping(value = "/locations")
 public class LocationController {
 
-    @Autowired
-    private LocationService locationService;
+    private final LocationService locationService;
 
-    @GetMapping(value = "/locations")
+    @GetMapping
     public ResponseEntity<List<Location>> locations() {
-
         List<Location> locations = locationService.getLocations();
         return ResponseEntity.ok(locations);
-
     }
 
-    // TODO: 02.03.19 we can't return optional from controller
-    @GetMapping("/locations/{id}")
-    public ResponseEntity<Optional<Location>> findById(@PathVariable long id) {
-        Optional<Location> byId = locationService.findById(id);
-        return ResponseEntity.ok(byId);
+    @GetMapping("/{id}")
+    public ResponseEntity<Location> findById(@PathVariable Long id) {
+
+        Location location = locationService.findById(id)
+                .orElseThrow(() -> new LocationNotFoundException("Location is not found " + id));
+        return ResponseEntity.ok(location);
     }
 
-    // TODO: 02.03.19 Return exact types (return created location)
-    @PostMapping("/createlocations")
-    public ResponseEntity<Object> createLocation(@RequestBody Location location) {
+    @PostMapping
+    public ResponseEntity<Location> createLocation(@RequestBody Location location) {
 
-        // TODO: 02.03.19 bad name
-        Location savedlocation = locationService.save(location);
-
-        URI loc = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
-                .buildAndExpand(savedlocation.getId()).toUri();
-
-        return ResponseEntity.created(loc).build();
-
+        Location newLocation = locationService.save(location);
+        return ResponseEntity.ok(newLocation);
     }
 
-    // TODO: 02.03.19 use response entity
-    @DeleteMapping("/removeLocations/{id}")
-    public void deleteStudent(@PathVariable long id) {
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Location> deleteRoute(@PathVariable Long id) {
+
         locationService.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
 
-    // TODO: 02.03.19 you don't need to accept id separately
-    // TODO: 02.03.19 move logic to service
-    @PutMapping("/updateLocations/{id}")
-    public ResponseEntity<Object> updateLocation(@RequestBody Location location, @PathVariable long id) {
+    @PutMapping
+    public ResponseEntity<Location> updateLocation(@RequestBody Location location) {
 
-        Optional<Location> locationOptional = locationService.findById(id);
-
-        if (!locationOptional.isPresent())
-            return ResponseEntity.notFound().build();
-
-        location.setId(id);
-
-        locationService.save(location);
-
-        return ResponseEntity.noContent().build();
+        Location updatedLocation = locationService.updateLocation(location);
+        return ResponseEntity.ok(updatedLocation);
     }
 
 }

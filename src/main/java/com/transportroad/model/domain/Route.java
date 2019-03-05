@@ -1,63 +1,53 @@
 package com.transportroad.model.domain;
 
-import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.*;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.List;
+
 
 @Entity
 @Data
+@NoArgsConstructor
 @Table(name = "ROUTE")
+@Builder
+@AllArgsConstructor
 public class Route {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
-    // TODO: 02.03.19 useless here
-    @Column(name = "NAME")
+    @Column(nullable = false)
     private String name;
 
-
-    // TODO: 02.03.19 many to many should have private setter
-    // TODO: 02.03.19 use one code convention for all db namings
+    @Setter(AccessLevel.PRIVATE)
     @ManyToMany(cascade = CascadeType.MERGE, fetch = FetchType.LAZY)
     @JoinTable(
-        name = "Loc_Route",
+        name = "LOC_ROUTE",
         joinColumns = @JoinColumn(name = "ROUTE_ID"),
         inverseJoinColumns = @JoinColumn(name = "LOCATION_ID")
     )
-    private List<Location> locations;
+    @ToString.Exclude
+    @JsonIgnore
+    private List<Location> locations = new ArrayList<>();
 
+    public void addLocation(Location location) {
+        locations.add(location);
+        location.getRoutes().add(this);
+    }
 
-    // TODO: 02.03.19 same as for location
-    public Route() {
+    public void removeLocation(Location location){
+        locations.remove(location);
+        location.getRoutes().remove(this);
     }
 
     public Route(String name, List <Location> locations) {
         this.name = name;
         this.locations = locations;
     }
-
-    /*
-    public Route(String name, Location head, Set<Location> locations) {
-        this.name = name;
-        this.head= head;
-        this.locations = locations;
-    }
-
-
-    @OneToOne(fetch = FetchType.LAZY,
-            cascade =  CascadeType.ALL,
-            mappedBy = "route")
-
-    private Location head;
-
-    //private Location[] locations;
-    //@ManyToMany
-    //private Set<Location> locations;
-
-   */
 
 
 }

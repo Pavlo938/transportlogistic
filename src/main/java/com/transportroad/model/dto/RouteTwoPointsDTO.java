@@ -8,10 +8,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class RouteTwoPointsDTO {
-    private long from;
-    private long to;
+
+    private Long from;
+
+    private Long to;
+
     private double distance;
-
-
-
 }

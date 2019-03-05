@@ -39,6 +39,7 @@ public class App implements CommandLineRunner {
                 new Location("Kiev", 10.0, 15.5),
                 new Location("London", 50, 80),
                 new Location("Paris", 51, 81));
+
         locationRepository.saveAll(locations);
 
         Route route1 = new Route("CoolTrip", locations);

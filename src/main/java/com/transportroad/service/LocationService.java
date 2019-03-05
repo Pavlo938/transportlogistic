@@ -7,7 +7,7 @@ import java.util.Optional;
 
 public interface LocationService {
 
-    List<Location> getLocations(); //to fetch all the locations from the database
+    List<Location> getLocations();
 
     Optional<Location> findById(Long id);
 
@@ -15,5 +15,9 @@ public interface LocationService {
 
     void deleteById(long id);
 
-    List<Location> getLocationsByIdIn(List<Long> ids);
+    //List<Location> getLocationsByIdIn(List<Long> ids);
+
+     Location updateLocation(Location location);
+
+     // List<Location> locationsValidator(List<Long> list);
 }

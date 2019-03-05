@@ -1,87 +1,84 @@
 package com.transportroad.service.impl;
 
+import com.transportroad.exception.LocationNotFoundException;
 import com.transportroad.model.domain.Location;
 import com.transportroad.model.domain.Route;
 import com.transportroad.model.dto.PlanDTO;
 import com.transportroad.model.dto.RouteTwoPointsDTO;
+import com.transportroad.repository.LocationRepository;
 import com.transportroad.repository.RouteRepository;
 import com.transportroad.service.RoutePlanService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 @Service
+@RequiredArgsConstructor
+@Transactional
 public class RoutePlanServiceImpl implements RoutePlanService {
 
-    @Autowired
-    private RouteRepository routeRepository;
+    private final RouteRepository routeRepository;
 
-    // TODO: 02.03.19 move common logic to separate function
+    private final LocationRepository locationRepository;
+
     @Override
-    public PlanDTO getPlan(List<Location> locations) {
+    public PlanDTO getPlan(List<Long> locationIds) {
+        List<Location> locations = this.locationsValidator(locationIds);
 
-        double totalDistance = 0;
+        PlanDTO planDTO = this.createPlanDTO(locations);
+        planDTO.getRoute().sort(Comparator.comparingDouble(RouteTwoPointsDTO::getDistance));
 
-        List<RouteTwoPointsDTO> routeDTO = new ArrayList<>();
-        for (int i = 1; i < locations.size(); i++) {
-
-            Location from = locations.get(i - 1);
-            Location to = locations.get(i);
-
-
-            double distance = this.distance(from.getX(), from.getY(), to.getX(), to.getY());
-
-            RouteTwoPointsDTO routeTwoPointsDTO = new RouteTwoPointsDTO(from.getId(), to.getId(), distance);
-            distance += distance;
-
-            totalDistance += distance;
-            routeDTO.add(routeTwoPointsDTO);
-        }
-        routeDTO.sort(Comparator.comparingDouble(RouteTwoPointsDTO::getDistance));
-
-
-        return new PlanDTO(routeDTO, totalDistance);
-
-
+        return planDTO;
     }
 
-
     @Override
+    @Transactional
     public PlanDTO getPlan(long routeId) {
 
         Route route = routeRepository.findById(routeId)
                 .orElseThrow(() -> new RuntimeException("Route not found"));
 
-        double totalDistance = 0;
-        List<RouteTwoPointsDTO> routeDto = new ArrayList<>();
+        PlanDTO planDTO = this.createPlanDTO(route.getLocations());
+        planDTO.getRoute().sort(Comparator.comparingDouble(RouteTwoPointsDTO::getDistance));
 
-        for (int i = 1; i < route.getLocations().size(); i++) {
-
-            Location from = route.getLocations().get(i - 1);
-            Location to = route.getLocations().get(i);
-
-
-            double distance = distance(from.getX(), from.getY(), to.getX(), to.getY());
-
-            RouteTwoPointsDTO routeTwoPointsDTO = new RouteTwoPointsDTO(
-                    from.getId(),
-                    to.getId(),
-                    distance);
-
-            totalDistance += distance;
-            routeDto.add(routeTwoPointsDTO);
-        }
-        routeDto.sort(Comparator.comparingDouble(RouteTwoPointsDTO::getDistance));
-
-
-        return new PlanDTO(routeDto, totalDistance);
+        return planDTO;
     }
 
-    @Override
-    public double distance(double x1, double y1, double x2, double y2) {
+    PlanDTO createPlanDTO(List<Location> locations) {
+
+        List<RouteTwoPointsDTO> routeDTO = new ArrayList<>();
+
+        double totalDistance = 0;
+
+        for (int i = 1; i < locations.size(); i++) {
+
+            Location from = locations.get(i - 1);
+            Location to = locations.get(i);
+
+            double distance = this.distance(from.getX(), from.getY(), to.getX(), to.getY());
+
+            RouteTwoPointsDTO routeTwoPointsDTO = new RouteTwoPointsDTO(from.getId(), to.getId(), distance);
+            totalDistance += distance;
+
+            routeDTO.add(routeTwoPointsDTO);
+        }
+
+        return new PlanDTO(routeDTO, totalDistance);
+    }
+
+    double distance(double x1, double y1, double x2, double y2) {
         return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+    }
+
+    List<Location> locationsValidator(List<Long> list) {
+
+        Set<Long> uniqueLocationIds = new HashSet<>(list);
+        List<Location> locationsByIdIn = locationRepository.getLocationsByIdIn(list);
+
+        if (!(uniqueLocationIds.size() == locationsByIdIn.size())) {
+            throw new LocationNotFoundException("Location is not found");
+        } else return locationsByIdIn;
     }
 }
