@@ -80,8 +80,9 @@ public class RoutePlanServiceImplTest {
         PlanDTO expected = new PlanDTO();
 
         List<RouteTwoPointsDTO> routeTwoPointsDTO = Arrays.asList(
-                new RouteTwoPointsDTO(1L, 2L, 75.89631084578485),
-                new RouteTwoPointsDTO(2L, 3L, 1.4142135623730951));
+
+                new RouteTwoPointsDTO(2L, 3L, 1.4142135623730951),
+                new RouteTwoPointsDTO(1L, 2L, 75.89631084578485));
 
         expected.setRoute(routeTwoPointsDTO);
         expected.setTotalDistance(77.31052440815795);
