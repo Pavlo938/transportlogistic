@@ -19,6 +19,7 @@ import java.util.*;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class RoutePlanServiceImplTest {
@@ -75,7 +76,7 @@ public class RoutePlanServiceImplTest {
 
         Route route = new Route("CoolTrip", locations);
 
-        doReturn(Optional.of(route)).when(routeRepository).findById(routeId);
+                when(routeRepository.findById(routeId)).thenReturn(Optional.of(route));
 
         PlanDTO expected = new PlanDTO();
 
@@ -125,18 +126,7 @@ public class RoutePlanServiceImplTest {
 
         List<Long> list = Arrays.asList(1L,2L,3L,4L);
 
-        Set<Long> actual = new HashSet<>(list);
-
-        List<Location> expected =  Arrays.asList(
-                new Location(1L,"Kyiv", 10.0, 15.5),
-                new Location(2L,"Pekin", 50, 80),
-                new Location(3L,"Lyon", 51, 81));
-
-
-        doReturn(expected).when(locationRepository).getLocationsByIdIn(list);
-
-        assertEquals(expected.size(), actual.size());
-
+        routePlanService.locationsValidator(list);
     }
 
 

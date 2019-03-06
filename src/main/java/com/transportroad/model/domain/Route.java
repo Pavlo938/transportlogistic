@@ -24,7 +24,7 @@ public class Route {
     private String name;
 
     @Setter(AccessLevel.PRIVATE)
-    @ManyToMany(cascade = CascadeType.MERGE, fetch = FetchType.LAZY)
+    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinTable(
         name = "LOC_ROUTE",
         joinColumns = @JoinColumn(name = "ROUTE_ID"),
